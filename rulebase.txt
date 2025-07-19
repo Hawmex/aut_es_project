@@ -1,0 +1,111 @@
+# 1
+IF(AND(user_mood == 'Happy', favorite_genre == 'Comedy'))
+THEN(AND(with_genres = 'Comedy', with_keywords = 'feel-good|buddy comedy', vote_average.gte = '6.5'))
+
+# 2
+IF(AND(user_mood == 'Happy', movie_vibe == 'Lighthearted'))
+THEN(AND(with_genres = 'Comedy|Family|Romance', vote_average.gte = '6.0', sort_by = 'popularity.desc'))
+
+# 3
+IF(AND(user_mood == 'Sad', favorite_genre == 'Drama'))
+THEN(AND(with_genres = 'Drama', with_keywords = 'tearjerker|emotional|loss', vote_average.gte = '7.0'))
+
+# 4
+IF(AND(user_mood == 'Sad', movie_vibe == 'Cathartic'))
+THEN(AND(with_genres = 'Drama', vote_average.gte = '7.5', sort_by = 'vote_average.desc'))
+
+# 5
+IF(AND(user_mood == 'Adventurous', favorite_genre == 'Action'))
+THEN(AND(with_genres = 'Action|Adventure', vote_average.gte = '6.5', sort_by = 'popularity.desc'))
+
+# 6
+IF(AND(user_mood == 'Adventurous', movie_vibe == 'Epic Journey'))
+THEN(AND(with_genres = 'Adventure|Fantasy', with_keywords = 'quest|journey|epic', vote_average.gte = '7.0'))
+
+# 7
+IF(AND(user_mood == 'In the mood for a scare', favorite_genre == 'Horror'))
+THEN(AND(with_genres = 'Horror', vote_average.gte = '6.5', sort_by = 'vote_average.desc'))
+
+# 8
+IF(AND(user_mood == 'Intellectual', OR(favorite_genre == 'Science Fiction', favorite_genre == 'Documentary')))
+THEN(OR(AND(with_genres = 'Science Fiction', vote_average.gte = '7.0', sort_by = 'vote_average.desc'), AND(with_genres = 'Documentary', vote_average.gte = '7.5', sort_by = 'vote_average.desc')))
+
+# 9
+IF(AND(favorite_genre == 'Science Fiction', movie_vibe == 'Dystopian'))
+THEN(AND(with_genres = 'Science Fiction', with_keywords = 'dystopian|dystopia|dark future', vote_average.gte = '6.5'))
+
+# 10
+IF(AND(favorite_genre == 'Action', movie_vibe == 'Heist'))
+THEN(AND(with_genres = 'Action|Crime', with_keywords = 'heist|robbery|bank robbery', vote_average.gte = '6.5'))
+
+# 11
+IF(movie_era == 'Golden Age')
+THEN(AND(primary_release_date.gte = '1940-01-01', primary_release_date.lte = '1969-12-31', vote_average.gte = '7.0', sort_by = 'vote_average.desc'))
+
+# 12
+IF(movie_era == '70s')
+THEN(AND(primary_release_date.gte = '1970-01-01', primary_release_date.lte = '1979-12-31', vote_average.gte = '6.5', sort_by = 'vote_average.desc'))
+
+# 13
+IF(movie_era == '80s')
+THEN(AND(primary_release_date.gte = '1980-01-01', primary_release_date.lte = '1989-12-31', vote_average.gte = '6.0', sort_by = 'popularity.desc'))
+
+# 14
+IF(movie_era == '90s')
+THEN(AND(primary_release_date.gte = '1990-01-01', primary_release_date.lte = '1999-12-31', vote_average.gte = '6.0', sort_by = 'popularity.desc'))
+
+# 15
+IF(movie_era == '2000s')
+THEN(AND(primary_release_date.gte = '2000-01-01', primary_release_date.lte = '2009-12-31', vote_average.gte = '6.0', sort_by = 'popularity.desc'))
+
+# 16
+IF(movie_duration == 'Short')
+THEN(AND(with_runtime.lte = '90', vote_average.gte = '6.0', sort_by = 'vote_average.desc'))
+
+# 17
+IF(movie_duration == 'Standard')
+THEN(AND(with_runtime.gte = '90', with_runtime.lte = '150', vote_average.gte = '6.0'))
+
+# 18
+IF(movie_duration == 'Epic')
+THEN(AND(with_runtime.gte = '150', with_genres = 'Drama|History|War|Adventure', vote_average.gte = '7.0', sort_by = 'vote_average.desc'))
+
+# 19
+IF(movie_rating == 'Family Friendly')
+THEN(AND(certification_country = 'US', OR(certification = 'G', certification = 'PG'), vote_average.gte = '6.0'))
+
+# 20
+IF(movie_rating == 'Teen')
+THEN(AND(certification_country = 'US', certification = 'PG-13', vote_average.gte = '6.0'))
+
+# 21
+IF(movie_rating == 'Mature')
+THEN(AND(certification_country = 'US', certification = 'R', vote_average.gte = '6.5', include_adult = 'true'))
+
+# 22
+IF(AND(OR(favorite_genre == 'Adventure', movie_vibe == 'Epic Journey'), movie_duration == 'Epic'))
+THEN(AND(with_genres = 'Adventure|Fantasy', with_runtime.gte = '150', vote_average.gte = '7.0', sort_by = 'vote_average.desc'))
+
+# 23
+IF(AND(OR(favorite_genre == 'Horror', movie_vibe == 'Supernatural'), movie_rating == 'Mature'))
+THEN(AND(with_genres = 'Horror', certification_country = 'US', certification = 'R', vote_average.gte = '6.5'))
+
+# 24
+IF(AND(user_mood == 'Thought Provoking', OR(favorite_genre == 'Science Fiction', favorite_genre == 'Drama')))
+THEN(OR(AND(with_genres = 'Science Fiction', vote_average.gte = '7.5', sort_by = 'vote_average.desc'), AND(with_genres = 'Drama', with_keywords = 'philosophical|existential|thought-provoking', vote_average.gte = '7.5')))
+
+# 25
+IF(AND(movie_vibe == 'Based on a true story', movie_era == '2000s'))
+THEN(AND(with_keywords = 'based on a true story|biographical', primary_release_date.gte = '2000-01-01', primary_release_date.lte = '2009-12-31', vote_average.gte = '6.5'))
+
+# 26
+IF(AND(favorite_genre == 'Animation', movie_vibe == 'Anime'))
+THEN(OR(AND(with_genres = 'Animation', with_origin_country = 'JP', vote_average.gte = '7.0'), AND(with_genres = 'Animation', with_keywords = 'anime|manga', vote_average.gte = '7.0')))
+
+# 27
+IF(AND(movie_vibe == 'Mind Bending', OR(favorite_genre == 'Thriller', favorite_genre == 'Science Fiction')))
+THEN(OR(AND(with_genres = 'Thriller|Science Fiction', with_keywords = 'psychological|mind-bending|reality', vote_average.gte = '7.0'), AND(with_genres = 'Mystery|Thriller', vote_average.gte = '7.5', sort_by = 'vote_average.desc')))
+
+# 28
+IF(AND(movie_era == 'Modern Classic', OR(favorite_genre == 'Drama', favorite_genre == 'Crime')))
+THEN(AND(primary_release_date.gte = '2000-01-01', primary_release_date.lte = '2015-12-31', with_genres = 'Drama|Crime', vote_average.gte = '8.0', sort_by = 'vote_average.desc'))
