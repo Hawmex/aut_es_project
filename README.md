@@ -58,7 +58,7 @@ This project implements a movie recommendation system using an expert system app
 2. **Installation**:
 
    ```bash
-   pip install requests pandas python-dotenv
+   pip install -r requirements.txt
    ```
 
 3. **Configuration**:
