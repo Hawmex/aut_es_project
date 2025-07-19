@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 from core.inference_engine import InferenceEngine
 from rulebase import rulebase
-from utils.map_phrases import map_phrases
+from utils import map_phrases
 
 load_dotenv()
 

@@ -1,7 +1,6 @@
 from typing import Any, Set
 
-from .rulebase import *
-from rulebase import *
+from .rulebase import Rulebase, State
 
 
 class InferenceEngine:
