@@ -58,7 +58,7 @@ class LogicalAnd(LogicalOperator):
                 return True
 
     def __repr__(self):
-        return f'AND({", ".join(map(str, self.statements))})'
+        return f'({" AND ".join(map(str, self.statements))})'
 
 
 class LogicalOr(LogicalOperator):
@@ -77,4 +77,4 @@ class LogicalOr(LogicalOperator):
             return False
 
     def __repr__(self):
-        return f'OR({", ".join(map(str, self.statements))})'
+        return f'({" OR ".join(map(str, self.statements))})'

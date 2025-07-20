@@ -1,6 +1,6 @@
 from typing import Any, Set
 
-from .rulebase import Rulebase, State
+from .rulebase import Rulebase, State, Rule
 
 
 class InferenceEngine:
@@ -33,19 +33,30 @@ class InferenceEngine:
                 print("Invalid input. Please enter a number.")
 
     def infer(self):
-        working_memory: State = {}
+        if (
+            not self.rulebase.rules
+            or not self.rulebase.io[0]
+            or not self.rulebase.io[1]
+        ):
+            raise ValueError(
+                "Invalid rulebase: missing rules or I/O specifications"
+            )
 
         print(
             "Please answer the following questions. Press Enter to skip a question."
         )
 
-        while True:
-            agenda = {
-                rule
-                for rule in self.rulebase.rules
-                if rule.exec(working_memory) is None
-            }
+        working_memory: State = {}
 
+        agenda: Set[Rule] = {
+            rule
+            for rule in self.rulebase.rules
+            if rule.exec(working_memory) is None
+        }
+
+        max_iterations = len(self.rulebase.rules) * 2
+
+        for _ in range(max_iterations):
             if not agenda:
                 break
 
@@ -65,13 +76,16 @@ class InferenceEngine:
                 and key not in working_memory
             }
 
-            if missing_inputs:
-                for key, value in missing_inputs.items():
-                    working_memory[key] = InferenceEngine.ask(key, value.values)
+            for key, value in missing_inputs.items():
+                working_memory[key] = InferenceEngine.ask(key, value.values)
 
-                continue
-
-            selected_rule.exec(working_memory)
+            agenda = {
+                rule for rule in agenda if rule.exec(working_memory) is None
+            }
+        else:
+            print(
+                "Maximum iterations reached. Possible cyclic dependencies or insufficient inputs."
+            )
 
         output = {
             key: value
@@ -80,7 +94,7 @@ class InferenceEngine:
         }
 
         if len(output) == 0:
-            print("\nInsuffiecient information to infer an output.")
+            print("\nInsufficient information to infer an output.")
 
             return None
 

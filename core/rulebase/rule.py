@@ -8,7 +8,7 @@ class Rule:
         self.consequent = consequent
 
     def __repr__(self):
-        return f"IF({self.antecedent})\nTHEN({self.consequent})"
+        return f"IF {self.antecedent}\nTHEN {self.consequent}"
 
     def exec(self, state: State):
         antecedent_result = self.antecedent.exec(state)
