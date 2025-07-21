@@ -1,6 +1,6 @@
 from typing import Any, Set
 
-from .rulebase import Rulebase, State, Rule
+from .rulebase import Rulebase, State
 
 
 class InferenceEngine:
@@ -33,33 +33,16 @@ class InferenceEngine:
                 print("Invalid input. Please enter a number.")
 
     def infer(self):
-        if (
-            not self.rulebase.rules
-            or not self.rulebase.io[0]
-            or not self.rulebase.io[1]
-        ):
-            raise ValueError(
-                "Invalid rulebase: missing rules or I/O specifications"
-            )
-
         print(
             "Please answer the following questions. Press Enter to skip a question."
         )
 
         working_memory: State = {}
+        agenda = set(self.rulebase.rules)
 
-        agenda: Set[Rule] = {
-            rule
-            for rule in self.rulebase.rules
-            if rule.exec(working_memory) is None
-        }
-
-        max_iterations = len(self.rulebase.rules) * 2
-
-        for _ in range(max_iterations):
-            if not agenda:
-                break
-
+        while agenda := {
+            rule for rule in agenda if rule.exec(working_memory) is None
+        }:
             selected_rule = max(
                 agenda,
                 key=lambda rule: sum(
@@ -78,14 +61,6 @@ class InferenceEngine:
 
             for key, value in missing_inputs.items():
                 working_memory[key] = InferenceEngine.ask(key, value.values)
-
-            agenda = {
-                rule for rule in agenda if rule.exec(working_memory) is None
-            }
-        else:
-            print(
-                "Maximum iterations reached. Possible cyclic dependencies or insufficient inputs."
-            )
 
         output = {
             key: value

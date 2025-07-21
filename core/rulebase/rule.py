@@ -1,9 +1,29 @@
 from .types import State
 from .statement import Statement
+from .expression import Evaluation, Assignment
+from .logical_operator import LogicalOperator
 
 
 class Rule:
     def __init__(self, antecedent: Statement, consequent: Statement):
+        if not (
+            isinstance(antecedent, Evaluation)
+            or (
+                isinstance(antecedent, LogicalOperator)
+                and antecedent.stype == "Evaluation"
+            )
+        ):
+            raise ValueError()
+
+        if not (
+            isinstance(consequent, Assignment)
+            or (
+                isinstance(consequent, LogicalOperator)
+                and consequent.stype == "Assignment"
+            )
+        ):
+            raise ValueError()
+
         self.antecedent = antecedent
         self.consequent = consequent
 
