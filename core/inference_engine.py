@@ -99,11 +99,8 @@ class InferenceEngine:
         unused_rules = set(self.rulebase.rules)
 
         def solve(key: str):
-            if key in self.rulebase.io[0]:
-                if key not in self.working_memory:
-                    self._ask(key)
-
-                return
+            if key in self.rulebase.io[0] and key not in self.working_memory:
+                self._ask(key)
 
             agenda = Rule.sorted(
                 {
