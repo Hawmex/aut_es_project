@@ -1,15 +1,24 @@
-from typing import Any, Set
+from typing import Literal
 
-from .rulebase import Rulebase, State
+from .rulebase import Rulebase, State, Rule, Dependency
+from .utils import print_headline
 
 
 class InferenceEngine:
     def __init__(self, rulebase: Rulebase):
         self.rulebase = rulebase
+        self.working_memory: State = {}
 
-    @staticmethod
-    def ask(question: str, values: Set[Any]):
-        options = sorted(list(values))
+    def _start_inference(self):
+        self.working_memory.clear()
+
+        print_headline(
+            "Please answer the following questions. "
+            "Press Enter to skip a question."
+        )
+
+    def _ask(self, question: str):
+        options = sorted(list(self.rulebase.io[0][question].values))
 
         print(f"\n{question}:")
 
@@ -21,50 +30,25 @@ class InferenceEngine:
                 choice = input("Your choice (number): ")
 
                 if choice == "":
-                    return None
+                    self.working_memory[question] = None
+
+                    break
 
                 choice_idx = int(choice) - 1
 
                 if 0 <= choice_idx < len(options):
-                    return options[choice_idx]
+                    self.working_memory[question] = options[choice_idx]
+
+                    break
 
                 print("Invalid number. Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a number.")
 
-    def infer(self):
-        print(
-            "Please answer the following questions. Press Enter to skip a question."
-        )
-
-        working_memory: State = {}
-        agenda = set(self.rulebase.rules)
-
-        while agenda := {
-            rule for rule in agenda if rule.exec(working_memory) is None
-        }:
-            selected_rule = max(
-                agenda,
-                key=lambda rule: sum(
-                    value.priority
-                    for key, value in self.rulebase.io[0].items()
-                    if key in rule.antecedent.dependencies
-                ),
-            )
-
-            missing_inputs = {
-                key: value
-                for key, value in self.rulebase.io[0].items()
-                if key in selected_rule.antecedent.dependencies
-                and key not in working_memory
-            }
-
-            for key, value in missing_inputs.items():
-                working_memory[key] = InferenceEngine.ask(key, value.values)
-
+    def _get_output(self):
         output = {
             key: value
-            for key, value in working_memory.items()
+            for key, value in self.working_memory.items()
             if key in self.rulebase.io[1]
         }
 
@@ -74,3 +58,89 @@ class InferenceEngine:
             return None
 
         return output
+
+    def _infer_forward(self):
+        self._start_inference()
+
+        unused_rules = set(self.rulebase.rules)
+
+        while unused_rules:
+            for rule in Rule.sorted(
+                unused_rules, by="antecedence", reverse=True
+            ):
+                if rule.exec(self.working_memory) is not None:
+                    unused_rules.remove(rule)
+
+                    continue
+
+                missing_inputs = Dependency.sorted(
+                    {
+                        key: value
+                        for key, value in self.rulebase.io[0].items()
+                        if key not in self.working_memory
+                        and key in rule.antecedent.dependencies
+                    },
+                    reverse=True,
+                )
+
+                for key in missing_inputs:
+                    self._ask(key)
+
+                    if rule.exec(self.working_memory) is not None:
+                        unused_rules.remove(rule)
+
+                        break
+
+        return self._get_output()
+
+    def _infer_backward(self):
+        self._start_inference()
+
+        unused_rules = set(self.rulebase.rules)
+
+        def solve(key: str):
+            if key in self.rulebase.io[0]:
+                if key not in self.working_memory:
+                    self._ask(key)
+
+                return
+
+            agenda = Rule.sorted(
+                {
+                    rule
+                    for rule in self.rulebase.rules
+                    if key in rule.consequent.dependencies
+                    and rule in unused_rules
+                },
+                by="consequence",
+                reverse=True,
+            )
+
+            for rule in agenda:
+                unused_rules.remove(rule)
+
+                for key in Dependency.sorted(
+                    rule.antecedent.dependencies, reverse=True
+                ):
+                    if rule.exec(self.working_memory) is not None:
+                        break
+
+                    solve(key)
+                else:
+                    rule.exec(self.working_memory)
+
+        for key in Dependency.sorted(self.rulebase.io[1], reverse=True):
+            solve(key)
+
+        return self._get_output()
+
+    def infer(self, chaining: Literal["forward", "backward"]):
+        print_headline(f"{chaining.upper()}-Chaining Inference", char="%")
+
+        match chaining:
+            case "forward":
+                return self._infer_forward()
+            case "backward":
+                return self._infer_backward()
+            case _:
+                raise ValueError("Unknown inference chaining method.")

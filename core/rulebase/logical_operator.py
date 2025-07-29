@@ -14,33 +14,33 @@ class LogicalOperator(Statement):
 
     @property
     def stype(self):
-        def is_assignment(item: Statement):
+        def is_assignment(stmt: Statement):
             return (
-                item.stype == "Assignment"
-                if isinstance(item, LogicalOperator)
-                else isinstance(item, Assignment)
+                stmt.stype == "Assignment"
+                if isinstance(stmt, LogicalOperator)
+                else isinstance(stmt, Assignment)
             )
 
-        def is_evaluation(item: Statement):
+        def is_evaluation(stmt: Statement):
             return (
-                item.stype == "Evaluation"
-                if isinstance(item, LogicalOperator)
-                else isinstance(item, Evaluation)
+                stmt.stype == "Evaluation"
+                if isinstance(stmt, LogicalOperator)
+                else isinstance(stmt, Evaluation)
             )
 
-        if all(is_assignment(item) for item in self.statements):
+        if all(is_assignment(stmt) for stmt in self.statements):
             return "Assignment"
-        elif all(is_evaluation(item) for item in self.statements):
+        elif all(is_evaluation(stmt) for stmt in self.statements):
             return "Evaluation"
         else:
-            raise TypeError()
+            raise TypeError("Mixed statement types not allowed")
 
     @property
     def dependencies(self):
         result: Dependencies = defaultdict(Dependency)
 
-        for statement in self.statements:
-            for key, value in statement.dependencies.items():
+        for stmt in self.statements:
+            for key, value in stmt.dependencies.items():
                 result[key] += value
 
         return result
@@ -48,7 +48,7 @@ class LogicalOperator(Statement):
 
 class LogicalAnd(LogicalOperator):
     def exec(self, state: State):
-        results = [statement.exec(state) for statement in self.statements]
+        results = [stmt.exec(state) for stmt in self.statements]
 
         if self.stype == "Evaluation":
             if False in results:
@@ -68,7 +68,7 @@ class LogicalOr(LogicalOperator):
 
             return
 
-        results = [statement.exec(state) for statement in self.statements]
+        results = [stmt.exec(state) for stmt in self.statements]
 
         if True in results:
             return True

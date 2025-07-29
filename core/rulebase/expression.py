@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 from .types import State, Dependency
 from .statement import Statement
@@ -33,7 +33,7 @@ class Evaluation(Expression):
 
         self.op = op
 
-    def exec(self, state: State):
+    def exec(self, state: State) -> Union[None, bool]:
         if self.key not in state:
             return
 
@@ -53,7 +53,7 @@ class Evaluation(Expression):
             case "!=":
                 return actual != self.value
             case _:
-                raise ValueError()
+                raise ValueError(f"Unknown operator: {self.op}")
 
     def __repr__(self):
         return f"{self.key} {self.op} '{self.value}'"

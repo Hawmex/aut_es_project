@@ -17,7 +17,7 @@ class Rulebase:
     def __repr__(self):
         return "\n\n".join(
             map(
-                lambda item: f"# {item[0] + 1}\n{item[1]}",
+                lambda rule: f"# {rule[0] + 1}\n{rule[1]}",
                 enumerate(self.rules),
             )
         )

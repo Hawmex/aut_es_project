@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Iterable, Literal
+
 from .types import State
 from .statement import Statement
 from .expression import Evaluation, Assignment
@@ -13,7 +16,7 @@ class Rule:
                 and antecedent.stype == "Evaluation"
             )
         ):
-            raise ValueError()
+            raise ValueError("Antecedent must be an evaluation statement")
 
         if not (
             isinstance(consequent, Assignment)
@@ -22,7 +25,7 @@ class Rule:
                 and consequent.stype == "Assignment"
             )
         ):
-            raise ValueError()
+            raise ValueError("Consequent must be an assignment statement")
 
         self.antecedent = antecedent
         self.consequent = consequent
@@ -37,3 +40,20 @@ class Rule:
             self.consequent.exec(state)
 
         return antecedent_result
+
+    @staticmethod
+    def sorted(
+        rules: Iterable[Rule],
+        by: Literal["antecedence", "consequence"],
+        reverse: bool = False,
+    ):
+        return sorted(
+            rules,
+            key=lambda rule: sum(
+                value.priority
+                for value in (
+                    rule.antecedent if by == "antecedence" else rule.consequent
+                ).dependencies.values()
+            ),
+            reverse=reverse,
+        )

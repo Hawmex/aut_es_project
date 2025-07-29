@@ -6,6 +6,7 @@ from typing import Any, Dict
 from dotenv import load_dotenv
 
 from core.inference_engine import InferenceEngine
+from core.utils import print_headline
 from rulebase import rulebase
 from utils import map_phrases
 
@@ -22,7 +23,10 @@ def get_genres():
     response = requests.get(url, headers=HEADERS)
 
     return dict(
-        map(lambda item: (item["name"], item["id"]), response.json()["genres"])
+        map(
+            lambda value: (value["name"], value["id"]),
+            response.json()["genres"],
+        )
     )
 
 
@@ -37,7 +41,8 @@ def get_keyword_id(keyword: str):
     return results[0]["id"]
 
 
-def get_movies(query: Dict[str, Any]):
+def refine_query(query: Dict[str, Any]):
+    query = query.copy()
     genres = get_genres()
 
     if "with_genres" in query:
@@ -50,9 +55,10 @@ def get_movies(query: Dict[str, Any]):
             query["with_keywords"], lambda phrase: str(get_keyword_id(phrase))
         )
 
-    print("\nRefined Search Query:")
-    print(pd.DataFrame([query]).T)
+    return query
 
+
+def get_movies(query: Dict[str, Any]):
     url = "https://api.themoviedb.org/3/discover/movie"
     response = requests.get(url, query, headers=HEADERS)
 
@@ -61,17 +67,22 @@ def get_movies(query: Dict[str, Any]):
 
 def main():
     engine = InferenceEngine(rulebase)
-    query = engine.infer()
+    query = engine.infer("backward")
 
     if query is None:
         return
 
-    print("\nResulted Search Query:")
+    print_headline("Resulted Search Query")
+    print(pd.DataFrame([query]).T)
+
+    query = refine_query(query)
+
+    print_headline("Refined Search Query")
     print(pd.DataFrame([query]).T)
 
     movies = get_movies(query)
 
-    print("\nRecommended Movies:")
+    print_headline("Recommended Movies")
 
     print(
         pd.DataFrame(
