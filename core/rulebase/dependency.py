@@ -15,6 +15,17 @@ class Dependency:
     def __repr__(self):
         return f"Dependency(values={self.values}, priority={self.priority})"
 
+    @property
+    def dtype(self):
+        if all(isinstance(value, (int, float)) for value in self.values):
+            return "numerical"
+        elif all(isinstance(value, str) for value in self.values):
+            return "categorical"
+        else:
+            raise ValueError(
+                "Dependency must be either numerical or categorical."
+            )
+
     @staticmethod
     def sorted(dependencies: Dict[str, Dependency], reverse: bool = False):
         return dict(

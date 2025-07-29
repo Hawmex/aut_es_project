@@ -1,7 +1,7 @@
 from typing import Literal
 
 from .rulebase import Rulebase, State, Rule, Dependency
-from .utils import print_headline
+from .utils import print_headline, NaS
 
 
 class InferenceEngine:
@@ -18,30 +18,43 @@ class InferenceEngine:
         )
 
     def _ask(self, question: str):
-        options = sorted(list(self.rulebase.io[0][question].values))
-
         print(f"\n{question}:")
 
-        for i, option in enumerate(options):
-            print(f"  {i+1}. {option}")
+        dep = self.rulebase.io[0][question]
+        options = sorted(list(dep.values))
+
+        if dep.dtype == "categorical":
+            for i, option in enumerate(options):
+                print(f"  {i+1}. {option}")
 
         while True:
             try:
-                choice = input("Your choice (number): ")
+                response = input(
+                    "Your choice (number): "
+                    if dep.dtype == "categorical"
+                    else "Your answer (number): "
+                )
 
-                if choice == "":
-                    self.working_memory[question] = None
+                if response == "":
+                    self.working_memory[question] = (
+                        NaS() if dep.dtype == "categorical" else float("nan")
+                    )
 
                     break
 
-                choice_idx = int(choice) - 1
-
-                if 0 <= choice_idx < len(options):
-                    self.working_memory[question] = options[choice_idx]
+                if dep.dtype == "numerical":
+                    self.working_memory[question] = float(response)
 
                     break
+                else:
+                    choice_idx = int(response) - 1
 
-                print("Invalid number. Please try again.")
+                    if 0 <= choice_idx < len(options):
+                        self.working_memory[question] = options[choice_idx]
+
+                        break
+
+                    print("Invalid number. Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a number.")
 
