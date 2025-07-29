@@ -108,9 +108,8 @@ class InferenceEngine:
             agenda = Rule.sorted(
                 {
                     rule
-                    for rule in self.rulebase.rules
+                    for rule in unused_rules
                     if key in rule.consequent.dependencies
-                    and rule in unused_rules
                 },
                 by="consequence",
                 reverse=True,

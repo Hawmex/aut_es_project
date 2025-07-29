@@ -52,8 +52,10 @@ class Rule:
             key=lambda rule: sum(
                 value.priority
                 for value in (
-                    rule.antecedent if by == "antecedence" else rule.consequent
-                ).dependencies.values()
+                    rule.antecedent.dependencies.values()
+                    if by == "antecedence"
+                    else rule.consequent.dependencies.values()
+                )
             ),
             reverse=reverse,
         )
