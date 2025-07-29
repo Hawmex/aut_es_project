@@ -1,16 +1,17 @@
-from typing import Any, Literal, Union
+from typing import Literal, Union
 
-from .types import State, Dependency
+from .types import State, Dependency, DVal
 from .statement import Statement
 
 
 class Expression(Statement):
-    def __init__(self, key: str, value: Any):
+    def __init__(self, key: str, value: DVal):
         self.key = key
         self.value = value
 
-    @property
-    def dependencies(self):
+        super().__init__()
+
+    def _dependencies(self):
         return {self.key: Dependency({self.value}, 1)}
 
 
@@ -21,13 +22,16 @@ class Assignment(Expression):
     def __repr__(self):
         return f"{self.key} = '{self.value}'"
 
+    def _stype(self):
+        return "assignment"
+
 
 class Evaluation(Expression):
     def __init__(
         self,
         key: str,
         op: Literal["==", ">=", "<=", ">", "<", "!="],
-        value: Any,
+        value: DVal,
     ):
         super().__init__(key, value)
 
@@ -43,13 +47,13 @@ class Evaluation(Expression):
             case "==":
                 return actual == self.value
             case ">=":
-                return actual >= self.value
+                return actual >= self.value  # type: ignore
             case "<=":
-                return actual <= self.value
+                return actual <= self.value  # type: ignore
             case ">":
-                return actual > self.value
+                return actual > self.value  # type: ignore
             case "<":
-                return actual < self.value
+                return actual < self.value  # type: ignore
             case "!=":
                 return actual != self.value
             case _:
@@ -57,3 +61,6 @@ class Evaluation(Expression):
 
     def __repr__(self):
         return f"{self.key} {self.op} '{self.value}'"
+
+    def _stype(self):
+        return "evaluation"

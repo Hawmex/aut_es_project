@@ -1,6 +1,6 @@
-from typing import Literal
+from typing import Dict, Literal
 
-from .rulebase import Rulebase, State, Rule, Dependency
+from .rulebase import Rulebase, State, Rule, DType, Dependency, DVal
 from .utils import print_headline, NaS
 
 
@@ -20,6 +20,16 @@ class InferenceEngine:
     def _ask(self, question: str):
         print(f"\n{question}:")
 
+        prompts: Dict[DType, str] = {
+            "numerical": "Your answer (number): ",
+            "categorical": "Your choice (number): ",
+        }
+
+        default_values: Dict[DType, DVal] = {
+            "numerical": float("nan"),
+            "categorical": NaS(),
+        }
+
         dep = self.rulebase.io[0][question]
         options = sorted(list(dep.values))
 
@@ -29,16 +39,10 @@ class InferenceEngine:
 
         while True:
             try:
-                response = input(
-                    "Your choice (number): "
-                    if dep.dtype == "categorical"
-                    else "Your answer (number): "
-                )
+                response = input(prompts[dep.dtype])
 
                 if response == "":
-                    self.working_memory[question] = (
-                        NaS() if dep.dtype == "categorical" else float("nan")
-                    )
+                    self.working_memory[question] = default_values[dep.dtype]
 
                     break
 
@@ -46,7 +50,8 @@ class InferenceEngine:
                     self.working_memory[question] = float(response)
 
                     break
-                else:
+
+                if dep.dtype == "categorical":
                     choice_idx = int(response) - 1
 
                     if 0 <= choice_idx < len(options):
@@ -54,7 +59,7 @@ class InferenceEngine:
 
                         break
 
-                    print("Invalid number. Please try again.")
+                print("Invalid number. Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a number.")
 
@@ -68,7 +73,7 @@ class InferenceEngine:
         if len(output) == 0:
             print("\nInsufficient information to infer an output.")
 
-            return None
+            return
 
         return output
 

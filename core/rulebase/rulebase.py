@@ -10,9 +10,13 @@ class Rulebase:
     def __init__(self, path: str, *rules: Rule):
         self.rules = rules
         self.state: State = {}
+        self.io = self._io()
 
-        with open(path, "w") as file:
-            file.write(str(self))
+        try:
+            with open(path, "w") as file:
+                file.write(str(self))
+        except IOError as e:
+            raise IOError(f"Failed to write to file {path}: {e}")
 
     def __repr__(self):
         return "\n\n".join(
@@ -22,8 +26,7 @@ class Rulebase:
             )
         )
 
-    @property
-    def io(self):
+    def _io(self):
         all_deps: Dependencies = defaultdict(Dependency)
         antecedent_dep_keys: Set[str] = set()
         consequent_dep_keys: Set[str] = set()

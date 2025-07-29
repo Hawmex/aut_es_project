@@ -13,7 +13,7 @@ class Rule:
             isinstance(antecedent, Evaluation)
             or (
                 isinstance(antecedent, LogicalOperator)
-                and antecedent.stype == "Evaluation"
+                and antecedent.stype == "evaluation"
             )
         ):
             raise ValueError("Antecedent must be an evaluation statement")
@@ -22,7 +22,7 @@ class Rule:
             isinstance(consequent, Assignment)
             or (
                 isinstance(consequent, LogicalOperator)
-                and consequent.stype == "Assignment"
+                and consequent.stype == "assignment"
             )
         ):
             raise ValueError("Consequent must be an assignment statement")
@@ -47,15 +47,12 @@ class Rule:
         by: Literal["antecedence", "consequence"],
         reverse: bool = False,
     ):
-        return sorted(
-            rules,
-            key=lambda rule: sum(
-                value.priority
-                for value in (
-                    rule.antecedent.dependencies.values()
-                    if by == "antecedence"
-                    else rule.consequent.dependencies.values()
-                )
-            ),
-            reverse=reverse,
-        )
+        def key(rule: Rule):
+            deps = {
+                "antecedence": rule.antecedent.dependencies,
+                "consequence": rule.consequent.dependencies,
+            }
+
+            return sum(value.priority for value in deps[by].values())
+
+        return sorted(rules, key=key, reverse=reverse)

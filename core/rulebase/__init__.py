@@ -3,7 +3,8 @@ from .logical_operator import LogicalAnd, LogicalOr
 from .rule import Rule
 from .rulebase import Rulebase
 from .types import State, Dependencies
-from .dependency import Dependency
+from .statement import SType
+from .dependency import DType, Dependency, DVal
 
 __all__ = [
     "Assignment",
@@ -15,4 +16,7 @@ __all__ = [
     "State",
     "Dependencies",
     "Dependency",
+    "SType",
+    "DType",
+    "DVal",
 ]

@@ -36,7 +36,7 @@ def get_keyword_id(keyword: str):
     results = response.json()["results"]
 
     if not results:
-        return None
+        return
 
     return results[0]["id"]
 
@@ -69,7 +69,7 @@ def main():
     engine = InferenceEngine(rulebase)
     query = engine.infer("backward")
 
-    if query is None:
+    if not query:
         return
 
     print_headline("Resulted Search Query")

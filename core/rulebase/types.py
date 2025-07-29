@@ -1,7 +1,7 @@
-from typing import Any, Dict
+from typing import Dict
 
-from .dependency import Dependency
+from .dependency import Dependency, DVal
 
 
-State = Dict[str, Any]
+State = Dict[str, DVal]
 Dependencies = Dict[str, Dependency]

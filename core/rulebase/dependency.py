@@ -1,13 +1,22 @@
 from __future__ import annotations
-from typing import Dict, Set, Any, Optional
+from typing import Dict, Literal, Set, Optional, Union
+
+DVal = Union[int, float, str]
+DType = Literal["numerical", "categorical"]
 
 
 class Dependency:
-    def __init__(self, values: Optional[Set[Any]] = None, priority: int = 0):
-        self.values: Set[Any] = values if values is not None else set()
+    def __init__(self, values: Optional[Set[DVal]] = None, priority: int = 0):
+        self.values: Set[DVal] = set(values) if values is not None else set()
         self.priority = priority
+        self.dtype: DType = self._dtype()
 
     def __add__(self, other: Dependency):
+        if self.values and other.values and self.dtype != other.dtype:
+            raise ValueError(
+                "Cannot add two non-empty dependencies of different dtypes."
+            )
+
         return Dependency(
             {*self.values, *other.values}, self.priority + other.priority
         )
@@ -15,16 +24,16 @@ class Dependency:
     def __repr__(self):
         return f"Dependency(values={self.values}, priority={self.priority})"
 
-    @property
-    def dtype(self):
-        if all(isinstance(value, (int, float)) for value in self.values):
+    def _dtype(self) -> DType:
+        if not self.values or all(
+            isinstance(value, (int, float)) for value in self.values
+        ):
             return "numerical"
-        elif all(isinstance(value, str) for value in self.values):
+
+        if all(isinstance(value, str) for value in self.values):
             return "categorical"
-        else:
-            raise ValueError(
-                "Dependency must be either numerical or categorical."
-            )
+
+        raise ValueError("Dependency must be either numerical or categorical.")
 
     @staticmethod
     def sorted(dependencies: Dict[str, Dependency], reverse: bool = False):
