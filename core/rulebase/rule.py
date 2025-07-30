@@ -3,28 +3,14 @@ from typing import Iterable, Literal
 
 from .types import State
 from .statement import Statement
-from .expression import Evaluation, Assignment
-from .logical_operator import LogicalOperator
 
 
 class Rule:
     def __init__(self, antecedent: Statement, consequent: Statement):
-        if not (
-            isinstance(antecedent, Evaluation)
-            or (
-                isinstance(antecedent, LogicalOperator)
-                and antecedent.stype == "evaluation"
-            )
-        ):
+        if antecedent.stype != "evaluation":
             raise ValueError("Antecedent must be an evaluation statement")
 
-        if not (
-            isinstance(consequent, Assignment)
-            or (
-                isinstance(consequent, LogicalOperator)
-                and consequent.stype == "assignment"
-            )
-        ):
+        if consequent.stype != "assignment":
             raise ValueError("Consequent must be an assignment statement")
 
         self.antecedent = antecedent

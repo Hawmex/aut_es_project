@@ -9,14 +9,6 @@ class InferenceEngine:
         self.rulebase = rulebase
         self.working_memory: State = {}
 
-    def _start_inference(self):
-        self.working_memory.clear()
-
-        print_headline(
-            "Please answer the following questions. "
-            "Press Enter to skip a question."
-        )
-
     def _ask(self, question: str):
         print(f"\n{question}:")
 
@@ -63,23 +55,7 @@ class InferenceEngine:
             except ValueError:
                 print("Invalid input. Please enter a number.")
 
-    def _get_output(self):
-        output = {
-            key: value
-            for key, value in self.working_memory.items()
-            if key in self.rulebase.io[1]
-        }
-
-        if len(output) == 0:
-            print("\nInsufficient information to infer an output.")
-
-            return
-
-        return output
-
     def _infer_forward(self):
-        self._start_inference()
-
         unused_rules = set(self.rulebase.rules)
 
         while unused_rules:
@@ -109,11 +85,7 @@ class InferenceEngine:
 
                         break
 
-        return self._get_output()
-
     def _infer_backward(self):
-        self._start_inference()
-
         unused_rules = set(self.rulebase.rules)
 
         def solve(key: str):
@@ -146,15 +118,33 @@ class InferenceEngine:
         for key in Dependency.sorted(self.rulebase.io[1], reverse=True):
             solve(key)
 
-        return self._get_output()
-
     def infer(self, chaining: Literal["forward", "backward"]):
         print_headline(f"{chaining.upper()}-Chaining Inference", char="%")
 
+        print_headline(
+            "Please answer the following questions. "
+            "Press Enter to skip a question."
+        )
+
+        self.working_memory.clear()
+
         match chaining:
             case "forward":
-                return self._infer_forward()
+                self._infer_forward()
             case "backward":
-                return self._infer_backward()
+                self._infer_backward()
             case _:
                 raise ValueError("Unknown inference chaining method.")
+
+        output = {
+            key: value
+            for key, value in self.working_memory.items()
+            if key in self.rulebase.io[1]
+        }
+
+        if len(output) == 0:
+            print("\nInsufficient information to infer an output.")
+
+            return
+
+        return output
