@@ -1,0 +1,85 @@
+# 1
+IF season == "spring"
+THEN color_preference = "light & warm colors"
+
+# 2
+IF season == "summer"
+THEN color_preference = "light & cold colors"
+
+# 3
+IF season == "autumn"
+THEN color_preference = "dark & warm colors"
+
+# 4
+IF season == "winter"
+THEN color_preference = "dark & cold colors"
+
+# 5
+IF color_preference == "light & warm colors"
+THEN clothing_colors = "peach|coral|light yellow|mint|lavender"
+
+# 6
+IF color_preference == "light & cold colors"
+THEN clothing_colors = "sky blue|aqua|lavender|cool gray|icy white"
+
+# 7
+IF color_preference == "dark & warm colors"
+THEN clothing_colors = "mustard|olive|burnt orange|burgundy|chocolate brown"
+
+# 8
+IF color_preference == "dark & cold colors"
+THEN clothing_colors = "navy|charcoal|emerald|deep red|black|icy white"
+
+# 9
+IF precipitation_probability < 50
+THEN precipitation_risk = "low"
+
+# 10
+IF precipitation_probability >= 50
+THEN precipitation_risk = "high"
+
+# 11
+IF temperature < 8
+THEN weather_condition = "cold"
+
+# 12
+IF (
+  temperature >= 8
+  AND temperature < 16
+)
+THEN weather_condition = "cool"
+
+# 13
+IF (
+  temperature >= 16
+  AND temperature < 24
+)
+THEN weather_condition = "moderate"
+
+# 14
+IF temperature >= 24
+THEN weather_condition = "hot"
+
+# 15
+IF precipitation_risk == "high"
+THEN footwear = "black boots"
+
+# 16
+IF precipitation_risk == "low"
+THEN footwear = "sneakers"
+
+# 17
+IF weather_condition == "cold"
+THEN clothing = "pullover|hoodie|long sleeve shirt & jacket"
+
+# 18
+IF weather_condition == "cool"
+THEN clothing = "pullover|hoodie|long sleeve shirt"
+
+# 19
+IF weather_condition == "moderate"
+THEN clothing = "long sleeve|sweat shirt"
+
+# 20
+IF weather_condition == "hot"
+THEN clothing = "t-shirt"

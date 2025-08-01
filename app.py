@@ -1,3 +1,4 @@
+import sys
 import os
 import requests
 import pandas as pd
@@ -22,12 +23,7 @@ def get_genres():
     url = "https://api.themoviedb.org/3/genre/movie/list"
     response = requests.get(url, headers=HEADERS)
 
-    return dict(
-        map(
-            lambda value: (value["name"], value["id"]),
-            response.json()["genres"],
-        )
-    )
+    return {value["name"]: value["id"] for value in response.json()["genres"]}
 
 
 def get_keyword_id(keyword: str):
@@ -67,7 +63,10 @@ def get_movies(query: Dict[str, Any]):
 
 def main():
     engine = InferenceEngine(rulebase)
-    query = engine.infer("backward")
+
+    engine.infer("backward")
+
+    query = engine.output
 
     if not query:
         return
@@ -93,4 +92,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("")
+        print_headline("User terminated the application process.")
+        sys.exit()

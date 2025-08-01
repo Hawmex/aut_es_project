@@ -1,17 +1,18 @@
 from __future__ import annotations
 from typing import Iterable, Literal
 
-from .types import State
+
+from .state import State
 from .statement import Statement
 
 
 class Rule:
     def __init__(self, antecedent: Statement, consequent: Statement):
         if antecedent.stype != "evaluation":
-            raise ValueError("Antecedent must be an evaluation statement")
+            raise TypeError("Antecedent must be an evaluation statement")
 
         if consequent.stype != "assignment":
-            raise ValueError("Consequent must be an assignment statement")
+            raise TypeError("Consequent must be an assignment statement")
 
         self.antecedent = antecedent
         self.consequent = consequent

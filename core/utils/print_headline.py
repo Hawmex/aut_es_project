@@ -1,7 +1,7 @@
 import textwrap
 
 
-def print_headline(message: str, char: str = "=", width: int = 80):
+def print_headline(message: str, char: str = "-", width: int = 80):
     lines = textwrap.wrap(message, width)
 
     print(char * width)

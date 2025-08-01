@@ -1,33 +1,31 @@
-from collections import defaultdict
 from typing import Set
 
 from .rule import Rule
-from .types import State, Dependencies
-from .dependency import Dependency
+from .dependency import Dependencies
 
 
 class Rulebase:
     def __init__(self, path: str, *rules: Rule):
+        if not rules:
+            raise ValueError("Expected at least one rule.")
+
         self.rules = rules
-        self.state: State = {}
-        self.io = self._io()
+        self.io = self._io
 
         try:
             with open(path, "w") as file:
                 file.write(str(self))
-        except IOError as e:
-            raise IOError(f"Failed to write to file {path}: {e}")
+        except OSError as e:
+            raise OSError(f"Failed to write to file: {path}") from e
 
     def __repr__(self):
         return "\n\n".join(
-            map(
-                lambda rule: f"# {rule[0] + 1}\n{rule[1]}",
-                enumerate(self.rules),
-            )
+            f"# {i + 1}\n{rule}" for i, rule in enumerate(self.rules)
         )
 
+    @property
     def _io(self):
-        all_deps: Dependencies = defaultdict(Dependency)
+        all_deps = Dependencies()
         antecedent_dep_keys: Set[str] = set()
         consequent_dep_keys: Set[str] = set()
 
@@ -41,15 +39,19 @@ class Rulebase:
             ]:
 
                 for key, value in dependencies.items():
-                    all_deps[key] += value
+                    all_deps.add(key, value)
 
         return (
-            {
-                key: all_deps[key]
-                for key in antecedent_dep_keys - consequent_dep_keys
-            },
-            {
-                key: all_deps[key]
-                for key in consequent_dep_keys - antecedent_dep_keys
-            },
+            Dependencies(
+                {
+                    key: all_deps[key]
+                    for key in antecedent_dep_keys - consequent_dep_keys
+                }
+            ),
+            Dependencies(
+                {
+                    key: all_deps[key]
+                    for key in consequent_dep_keys - antecedent_dep_keys
+                }
+            ),
         )

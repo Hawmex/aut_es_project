@@ -1,6 +1,8 @@
-from typing import Dict, Literal
+import textwrap
 
-from .rulebase import Rulebase, State, Rule, DType, Dependency, DVal
+from typing import Dict, List, Literal, Tuple
+
+from .rulebase import Rulebase, State, Rule, DType, Dependencies, DVal
 from .utils import print_headline, NaS
 
 
@@ -8,6 +10,17 @@ class InferenceEngine:
     def __init__(self, rulebase: Rulebase):
         self.rulebase = rulebase
         self.working_memory: State = {}
+        self.reasoning_trace: List[Tuple[State, Rule]] = []
+
+    @property
+    def output(self):
+        result = {
+            key: value
+            for key, value in self.working_memory.items()
+            if key in self.rulebase.io[1]
+        }
+
+        return result
 
     def _ask(self, question: str):
         print(f"\n{question}:")
@@ -27,11 +40,16 @@ class InferenceEngine:
 
         if dep.dtype == "categorical":
             for i, option in enumerate(options):
-                print(f"  {i+1}. {option}")
+                print(f'  {i+1}. "{option}"')
 
         while True:
             try:
                 response = input(prompts[dep.dtype])
+
+                if response.lower() == "why?":
+                    self._explain_why(question)
+
+                    break
 
                 if response == "":
                     self.working_memory[question] = default_values[dep.dtype]
@@ -55,6 +73,15 @@ class InferenceEngine:
             except ValueError:
                 print("Invalid input. Please enter a number.")
 
+    def _exec(self, rule: Rule):
+        state_snapshot = self.working_memory.copy()
+        result = rule.exec(self.working_memory)
+
+        if result:
+            self.reasoning_trace.append((state_snapshot, rule))
+
+        return result
+
     def _infer_forward(self):
         unused_rules = set(self.rulebase.rules)
 
@@ -62,25 +89,24 @@ class InferenceEngine:
             for rule in Rule.sorted(
                 unused_rules, by="antecedence", reverse=True
             ):
-                if rule.exec(self.working_memory) is not None:
+                if self._exec(rule) is not None:
                     unused_rules.remove(rule)
 
                     continue
 
-                missing_inputs = Dependency.sorted(
+                missing_inputs = Dependencies(
                     {
                         key: value
                         for key, value in self.rulebase.io[0].items()
                         if key not in self.working_memory
                         and key in rule.antecedent.dependencies
-                    },
-                    reverse=True,
-                )
+                    }
+                ).sorted(reverse=True)
 
-                for key in missing_inputs:
+                for key in missing_inputs.keys():
                     self._ask(key)
 
-                    if rule.exec(self.working_memory) is not None:
+                    if self._exec(rule) is not None:
                         unused_rules.remove(rule)
 
                         break
@@ -105,46 +131,85 @@ class InferenceEngine:
             for rule in agenda:
                 unused_rules.remove(rule)
 
-                for key in Dependency.sorted(
-                    rule.antecedent.dependencies, reverse=True
-                ):
-                    if rule.exec(self.working_memory) is not None:
+                for key in rule.antecedent.dependencies.sorted(
+                    reverse=True
+                ).keys():
+                    if self._exec(rule) is not None:
                         break
 
                     solve(key)
                 else:
-                    rule.exec(self.working_memory)
+                    self._exec(rule)
 
-        for key in Dependency.sorted(self.rulebase.io[1], reverse=True):
+        for key in self.rulebase.io[1].sorted(reverse=True).keys():
             solve(key)
 
+    def _explain_why(self, question: str):
+        print(
+            "\nAnswering this question will help with the "
+            "execution of the following rules:"
+        )
+
+        for rule in self.rulebase.rules:
+            if question in rule.antecedent.dependencies:
+                print(f"\n{rule}")
+
+        self._ask(question)
+
+    def _explain_how(self):
+        print_headline("How were the outputs derived?")
+
+        for i, (state_snapshot, rule) in enumerate(self.reasoning_trace, 1):
+            print(f"\nStep {i}:")
+            print("  State:")
+
+            for key, value in state_snapshot.items():
+                print(
+                    f"    {key}: {f'"{value}"' if isinstance(value, str) else value}"
+                )
+
+            print(f"  Rule:\n{textwrap.indent(str(rule), "    ")}")
+
     def infer(self, chaining: Literal["forward", "backward"]):
-        print_headline(f"{chaining.upper()}-Chaining Inference", char="%")
+        print_headline(f"{chaining.upper()}-Chaining Inference", char="=")
 
         print_headline(
             "Please answer the following questions. "
-            "Press Enter to skip a question."
+            "Press Enter to skip a question. "
+            "Press Ctrl+Z+Enter to exit the inference process. "
+            'Answer "Why?" To see why a question is being asked.'
         )
 
         self.working_memory.clear()
+        self.reasoning_trace.clear()
 
-        match chaining:
-            case "forward":
-                self._infer_forward()
-            case "backward":
-                self._infer_backward()
-            case _:
-                raise ValueError("Unknown inference chaining method.")
+        try:
+            match chaining:
+                case "forward":
+                    self._infer_forward()
+                case "backward":
+                    self._infer_backward()
+                case _:
+                    raise ValueError("Unknown inference chaining method.")
+        except EOFError:
+            print_headline("Inference process interrupted by user.")
 
-        output = {
-            key: value
-            for key, value in self.working_memory.items()
-            if key in self.rulebase.io[1]
-        }
-
-        if len(output) == 0:
-            print("\nInsufficient information to infer an output.")
+        if len(self.output) == 0:
+            print_headline("Insufficient information to infer an output.")
 
             return
 
-        return output
+        while True:
+            should_explain = input(
+                "\nDo you want to know how the conclusion was achieved? (yes/no) "
+            ).lower()
+
+            if should_explain == "no":
+                break
+
+            if should_explain == "yes":
+                self._explain_how()
+
+                break
+
+            print('Please answer with "yes" or "no".')
